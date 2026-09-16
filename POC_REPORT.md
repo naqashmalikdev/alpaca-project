@@ -71,20 +71,21 @@ that doesn't make it tested. It isn't.
 | No native "recurring transfer" object exists anywhere in Alpaca's API, even under Broker API | **DOCS** — confirmed by reading Alpaca's funding, ACH, journals, and FAQ documentation; absence confirmed across every funding-related page, not assumed |
 | `GET /v2/account` returns cash/equity/buying_power fields that would reflect a funding event if one occurred | **TESTED** — we called this endpoint live and got real values back, but against our own **already-funded** paper account (it starts with $100,000 by default). **We never funded an account ourselves and watched this endpoint change** — we only confirmed the field exists and returns a number, not that it correctly reflects a real funding event over time |
 | Our app can practically detect a funding event by polling this endpoint | **UNVERIFIED** — never tested; no funding event was ever triggered or observed during this POC |
-| What Alpaca's own consumer-facing funding UI/flow actually looks like, or whether it supports "recurring deposits" for individual retail users at all | **UNVERIFIED** — we never looked at this. We did not research any partner's funding-status handling either (unlike account opening, where we at least checked one partner). This is a real gap in this POC, not just an open question. |
-| "Recurring contributions probably means the customer sets it up inside Alpaca's own UI, and our app just reacts to it" | **UNVERIFIED — our own hypothesis, not sourced from any documentation or partner example.** This was our inference based on process of elimination (Alpaca has no API for it, and funding is stated to be Alpaca's responsibility), not a confirmed fact. It needs to be checked against Alpaca directly or a partner's real product before being treated as true. |
+| Alpaca's own consumer app has no "recurring deposit" / "recurring investment" feature documented anywhere | **DOCS — read, not tested.** We read Alpaca's public support center (`alpaca.markets/support`, all articles under "Individuals" and specifically the funding/transfers tag) and their marketing site. Every funding article covers one-time ACH/wire transfers only; nothing describes a recurring/automatic deposit or auto-invest feature. **We did not log into any Alpaca account's dashboard and look for this ourselves — this is based on reading their public help articles and marketing pages, not on using the product.** Treat this as "not found in what Alpaca publishes," not a confirmed "does not exist" — their blog wasn't checked, and a logged-in dashboard could show something support articles don't mention. |
+| What Alpaca's actual funding UI (bank linking, deposit screen) looks like for a real customer | **UNVERIFIED.** Paper accounts get simulated funding with no real bank-linking step, so this can't be seen there. Seeing the real thing needs a **live** Alpaca account, which requires actual identity verification (KYC) with no confirmed timeline — a real cost, not a quick check. Not attempted this POC. |
+| "Recurring contributions probably means the customer sets it up inside Alpaca's own UI, and our app just reacts to it" | **UNVERIFIED — our own hypothesis, not sourced from any documentation or partner example.** This was our inference based on process of elimination (Alpaca has no API for it, and funding is stated to be Alpaca's responsibility) — and is now further undercut by the finding above, since there's no evidence Alpaca's own UI even *has* a recurring-deposit setting for the customer to use. Needs to be checked directly with Alpaca before being treated as true. |
+| Our app detecting a real funding event on an OAuth-connected account and reacting to it (the actual second half of the client's question) | **BLOCKED, not just unverified.** This requires both an OAuth-connected account (blocked on Question 1 — no app credentials) *and* a real, funded live account (blocked on live-account KYC, timing unknown). Neither precondition exists, so this literally cannot be tested yet, independent of how much more research goes into Alpaca's documentation. |
 
-**Bottom line on Question 2: not proven, and less researched than
-Question 1.** We're confident Trading API has no funding capability
-(that's well-documented and unambiguous), which does answer part of the
-question — but "the customer can fund and set up recurring contributions
-through an Alpaca-provided flow, with our app able to tell when funds are
-available" was never observed, tested, or even researched via a partner
-example. The most honest summary: Alpaca almost certainly doesn't own
-"recurring contributions" as a first-class feature at all (no such object
-exists anywhere in their API), which itself is useful to know, but exactly
-how a partner app is supposed to detect and react to funding in practice
-was not established this POC.
+**Bottom line on Question 2: not proven.** Two things are now clear from
+reading Alpaca's documentation (not from testing): Trading API itself has
+no funding capability at all (unambiguous), and there's no sign Alpaca's
+own consumer app offers recurring deposits as a feature at all (less
+certain — based on public docs only, not on logging into a real account).
+Both are useful to know, but neither is the same as testing the actual
+question: whether our app can detect and react to a customer funding their
+account and contributing recurringly. That part is a named blocker (see
+table above), not just an open research gap — it cannot move forward until
+Question 1's OAuth blocker is resolved.
 
 ---
 
