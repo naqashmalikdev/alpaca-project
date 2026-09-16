@@ -37,6 +37,69 @@ Every claim in this report is tagged with one of:
 **Neither question was directly tested end-to-end.** Below is exactly what
 was and wasn't done for each, and why.
 
+## Direct answers
+
+For each question: is it live-tested or blocked, would it actually work if
+the blocker were resolved, and where's the proof. Full evidence and
+reasoning for each line is in the detailed sections further down.
+
+### Q1: Account opening (OAuth pop-out and connect)
+
+- **Tested live, or blocked?** Blocked. **Zero live executions.** We never
+  obtained Alpaca OAuth app credentials, so `/oauth/login` and
+  `/oauth/callback` have never run against Alpaca's servers — not once,
+  not even the simple case of an existing account clicking "Authorize."
+- **If the blocker (Alpaca's ~30-business-day app approval) is resolved,
+  will this actually work?** The core connection mechanism — very likely
+  yes. This is Alpaca's standard, mature OAuth product, used today by
+  multiple real, live partner apps (TradingView, TradersPost, and others
+  listed in Alpaca's own Connect directory), so the plumbing itself is
+  low-risk. What's *less* certain even after the blocker clears: whether a
+  brand-new customer experiences this as one smooth "pop out and come
+  back" hop, or two separate steps with an unconfirmed wait in between for
+  identity verification (that's what TradersPost's own documentation
+  suggests happens for their integration). So: the connection will
+  probably work; the exact UX shape and timing needs the live test to
+  confirm.
+- **Proof of testing:** None exists, because none was performed. There is
+  no request/response log for this in API_TEST_LOG.md, and there
+  shouldn't be one yet — that would misrepresent untested code as tested.
+  What we do have is Alpaca's own documentation (cited inline in the
+  Question 1 table below) and TradersPost's public description of their
+  own integration (also cited) — evidence *about* the flow, not proof we
+  ran it.
+
+### Q2: Funding + recurring contributions
+
+- **Tested live, or blocked?** Blocked, for the actual question asked.
+  `GET /v2/account` was called live and returned real data (see
+  API_TEST_LOG.md) — but against our own already-funded paper account, so
+  that only proves the endpoint works, not that our app can detect a real
+  funding event or that recurring contributions function at all. Nothing
+  resembling "customer funds their account and our app notices" was ever
+  triggered or observed.
+- **If the blockers are resolved, will this actually work?** Split answer:
+  - **"App can tell when funds are available"** — very likely yes, but
+    only via polling. Trading API has no push/webhook mechanism for this
+    (that's exclusive to Broker API, out of scope) — even with OAuth fully
+    working, our app would need to periodically call `GET /v2/account` and
+    check the balance, not get notified instantly. This is a low-risk,
+    well-understood pattern, just not real-time.
+  - **"Customer can establish recurring contributions through an
+    Alpaca-provided flow"** — genuinely uncertain, and resolving the OAuth
+    blocker would **not** automatically answer this. It depends on a
+    separate fact we haven't confirmed either way: whether Alpaca's own
+    consumer app even offers a recurring-deposit feature to end customers
+    at all. Public documentation search found no evidence it exists (see
+    Question 2 below) — but that's based on reading support articles, not
+    on logging into a real Alpaca account and checking. This needs
+    verifying directly, independent of our OAuth access.
+- **Proof of testing:** One real API call exists
+  (`GET /v2/account` → live response, in API_TEST_LOG.md), but it proves
+  the endpoint works, not that funding detection or recurring
+  contributions work. No test exists for either of those because both are
+  currently blocked or unconfirmed as described above.
+
 ---
 
 ## Question 1: Account opening
