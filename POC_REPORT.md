@@ -71,29 +71,33 @@ reasoning for each line is in the detailed sections further down.
 
 ### Q2: Funding + recurring contributions
 
-- **Tested live, or blocked?** Blocked, for the actual question asked.
-  `GET /v2/account` was called live and returned real data (see
-  API_TEST_LOG.md) — but against our own already-funded paper account, so
-  that only proves the endpoint works, not that our app can detect a real
-  funding event or that recurring contributions function at all. Nothing
-  resembling "customer funds their account and our app notices" was ever
-  triggered or observed.
-- **If the blockers are resolved, will this actually work?** Split answer:
+- **Tested live, or blocked?** Blocked — **by a different blocker than
+  Question 1, not the OAuth one.** `GET /v2/account` was called live and
+  returned real data (see API_TEST_LOG.md), but against our own
+  already-funded paper account, so that only proves the endpoint works,
+  not that our app can detect a real funding event. What's actually
+  blocking this test is needing a **live, identity-verified, funded**
+  Alpaca account to observe a real deposit against — that's testable with
+  our own direct API key, the same way we already tested paper trading,
+  and doesn't require Alpaca's OAuth/Connect app approval at all.
+- **If that blocker (a live, funded account) is resolved, will this
+  actually work?** Split answer:
   - **"App can tell when funds are available"** — very likely yes, but
     only via polling. Trading API has no push/webhook mechanism for this
-    (that's exclusive to Broker API, out of scope) — even with OAuth fully
-    working, our app would need to periodically call `GET /v2/account` and
-    check the balance, not get notified instantly. This is a low-risk,
-    well-understood pattern, just not real-time.
+    (that's exclusive to Broker API, out of scope), so our app would need
+    to periodically call `GET /v2/account` and check the balance, not get
+    notified instantly. This is a low-risk, well-understood pattern, just
+    not real-time. Note this doesn't need OAuth either — only once we want
+    to do this for a customer's account rather than our own does the
+    OAuth connection from Question 1 become relevant.
   - **"Customer can establish recurring contributions through an
-    Alpaca-provided flow"** — genuinely uncertain, and resolving the OAuth
-    blocker would **not** automatically answer this. It depends on a
-    separate fact we haven't confirmed either way: whether Alpaca's own
+    Alpaca-provided flow"** — genuinely uncertain, and getting a live
+    funded account would **not** automatically answer this either. It
+    depends on a separate fact we haven't confirmed: whether Alpaca's own
     consumer app even offers a recurring-deposit feature to end customers
     at all. Public documentation search found no evidence it exists (see
     Question 2 below) — but that's based on reading support articles, not
-    on logging into a real Alpaca account and checking. This needs
-    verifying directly, independent of our OAuth access.
+    on logging into a real Alpaca account and checking.
 - **Proof of testing:** One real API call exists
   (`GET /v2/account` → live response, in API_TEST_LOG.md), but it proves
   the endpoint works, not that funding detection or recurring
@@ -137,7 +141,7 @@ that doesn't make it tested. It isn't.
 | Alpaca's own consumer app has no "recurring deposit" / "recurring investment" feature documented anywhere | **DOCS — read, not tested.** We read Alpaca's public support center (`alpaca.markets/support`, all articles under "Individuals" and specifically the funding/transfers tag) and their marketing site. Every funding article covers one-time ACH/wire transfers only; nothing describes a recurring/automatic deposit or auto-invest feature. **We did not log into any Alpaca account's dashboard and look for this ourselves — this is based on reading their public help articles and marketing pages, not on using the product.** Treat this as "not found in what Alpaca publishes," not a confirmed "does not exist" — their blog wasn't checked, and a logged-in dashboard could show something support articles don't mention. |
 | What Alpaca's actual funding UI (bank linking, deposit screen) looks like for a real customer | **UNVERIFIED.** Paper accounts get simulated funding with no real bank-linking step, so this can't be seen there. Seeing the real thing needs a **live** Alpaca account, which requires actual identity verification (KYC) with no confirmed timeline — a real cost, not a quick check. Not attempted this POC. |
 | "Recurring contributions probably means the customer sets it up inside Alpaca's own UI, and our app just reacts to it" | **UNVERIFIED — our own hypothesis, not sourced from any documentation or partner example.** This was our inference based on process of elimination (Alpaca has no API for it, and funding is stated to be Alpaca's responsibility) — and is now further undercut by the finding above, since there's no evidence Alpaca's own UI even *has* a recurring-deposit setting for the customer to use. Needs to be checked directly with Alpaca before being treated as true. |
-| Our app detecting a real funding event on an OAuth-connected account and reacting to it (the actual second half of the client's question) | **BLOCKED, not just unverified.** This requires both an OAuth-connected account (blocked on Question 1 — no app credentials) *and* a real, funded live account (blocked on live-account KYC, timing unknown). Neither precondition exists, so this literally cannot be tested yet, independent of how much more research goes into Alpaca's documentation. |
+| Our app detecting a real funding event and reacting to it (the actual second half of the client's question) | **BLOCKED — but by a live, KYC'd account, not by the OAuth blocker from Question 1.** This test doesn't need OAuth at all: it only needs a **live** Alpaca account (ours or anyone's, via our own direct API key, same mechanism already proven for paper trading), taken through real identity verification and an actual deposit, then polled to watch the balance change. That's a separate blocker from Question 1's Connect-app approval — it's about needing a live/funded account to observe, not about needing our app approved to connect one. OAuth only becomes relevant for the narrower case of proving this same mechanism works against a *third-party customer's* account specifically, rather than our own — a smaller, later concern once the core mechanism is already confirmed. |
 
 **Bottom line on Question 2: not proven.** Two things are now clear from
 reading Alpaca's documentation (not from testing): Trading API itself has
@@ -146,9 +150,11 @@ own consumer app offers recurring deposits as a feature at all (less
 certain — based on public docs only, not on logging into a real account).
 Both are useful to know, but neither is the same as testing the actual
 question: whether our app can detect and react to a customer funding their
-account and contributing recurringly. That part is a named blocker (see
-table above), not just an open research gap — it cannot move forward until
-Question 1's OAuth blocker is resolved.
+account and contributing recurringly. That part is blocked by needing a
+live, identity-verified, actually-funded Alpaca account to observe —
+**not** by Question 1's OAuth approval blocker, which is a different,
+unrelated blocker. The two questions have two separate blockers; they
+don't compound on this piece.
 
 ---
 
